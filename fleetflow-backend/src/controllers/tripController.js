@@ -25,7 +25,12 @@ const createTrip = async (req, res) => {
             return res.status(400).json({ message: 'Driver license has expired. Assignment blocked.' });
         }
 
-        // Rule 3: Availability Check
+        // Rule 3: Category Matching Check
+        if (vehicle.type && !driver.vehicleCategory?.includes(vehicle.type)) {
+            return res.status(400).json({ message: `Driver ${driver.name} is not qualified to operate a ${vehicle.type}` });
+        }
+
+        // Rule 4: Availability Check
         if (vehicle.status !== 'Available' || (driver.status !== 'On Duty' && driver.status !== 'Available')) {
             return res.status(400).json({ message: 'Vehicle or Driver is not available for assignment' });
         }

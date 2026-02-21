@@ -7,7 +7,8 @@ const driverSchema = new mongoose.Schema({
     vehicleCategory: [{ type: String, enum: ['Truck', 'Van', 'Bike'] }],
     safetyScore: { type: Number, default: 100 },
     tripCompletionRate: { type: Number, default: 100 },
-    status: { type: String, enum: ['On Duty', 'Off Duty', 'Suspended', 'On Trip'], default: 'Off Duty' },
+    complaints: { type: Number, default: 0 },
+    status: { type: String, enum: ['Available', 'On Duty', 'Off Duty', 'Suspended', 'On Trip', 'Taking a Break'], default: 'Off Duty' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Driver', driverSchema);
