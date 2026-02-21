@@ -157,19 +157,13 @@ const Trips: React.FC = () => {
 
                 {/* Map View */}
                 <TripMap
-                    markers={trips.filter(t => t.vehicle).map(t => {
-                        // Use trip ID to generate a stable pseudo-random position if real coordinates aren't in DB
-                        const seed = t._id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-                        const lat = 20.5937 + ((seed % 100) / 10 - 5);
-                        const lng = 78.9629 + (((seed * 7) % 100) / 10 - 5);
-
-                        return {
-                            id: t._id,
-                            position: [lat, lng] as [number, number],
-                            label: `${t.vehicle?.name} (${t.driver?.name})`,
-                            status: t.status
-                        };
-                    })}
+                    markers={trips.filter(t => t.vehicle && t.startPoint && t.endPoint && t.status === 'Dispatched').map(t => ({
+                        id: t._id,
+                        label: `${t.vehicle?.name} (${t.driver?.name})`,
+                        status: t.status,
+                        startPoint: t.startPoint,
+                        endPoint: t.endPoint,
+                    }))}
                 />
 
                 {/* Dashboard Controls */}
