@@ -1,0 +1,9 @@
+{
+  "/financials/page": "app/financials/page.js",
+  "/trips/page": "app/trips/page.js",
+  "/analytics/page": "app/analytics/page.js",
+  "/login/page": "app/login/page.js",
+  "/drivers/page": "app/drivers/page.js",
+  "/not-found": "app/not-found.js",
+  "/dashboard/page": "app/dashboard/page.js"
+}
