@@ -201,15 +201,7 @@ GET    /api/analytics/overall?range=30
 
 ---
 
-## What's still open
-
-- Role-based UI restrictions (dispatcher shouldn't see analytics)  
-- PDF export alongside CSV  
-- Mobile layout for dispatchers on the road  
-- Custom date range picker  
-- Multi-depot / region filtering for larger operations
-
----
+ 
 
 <div align="center">
   <sub>Built from scratch. Every validation, every status transition, every route on that map — it all runs against a live database.</sub>
