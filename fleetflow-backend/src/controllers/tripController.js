@@ -5,7 +5,7 @@ const Driver = require('../models/Driver');
 // @desc    Assign and Dispatch a trip
 // @route   POST /api/trips
 const createTrip = async (req, res) => {
-    const { vehicleId, driverId, cargoWeight, startPoint, endPoint } = req.body;
+    const { vehicleId, driverId, cargoWeight, startPoint, endPoint, revenue, fuelCost } = req.body;
 
     try {
         const vehicle = await Vehicle.findById(vehicleId);
@@ -41,6 +41,8 @@ const createTrip = async (req, res) => {
             cargoWeight,
             startPoint,
             endPoint,
+            revenue: Number(revenue) || 0,
+            fuelCost: Number(fuelCost) || 0,
             status: 'Dispatched',
             dispatchDate: Date.now(),
             startOdometer: vehicle.odometer

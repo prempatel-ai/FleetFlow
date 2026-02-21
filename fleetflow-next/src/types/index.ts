@@ -51,6 +51,7 @@ export interface Trip {
     dispatchDate: string;
     arrivalDate?: string;
     revenue?: number;
+    fuelCost?: number;
 }
 
 export type LogType = 'Fuel' | 'Maintenance' | 'Expense';
