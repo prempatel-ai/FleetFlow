@@ -3,8 +3,12 @@ import { AuthProvider } from '../context/AuthContext';
 import './globals.css';
 
 export const metadata = {
-    title: 'FleetFlow - Logistics Management',
-    description: 'Fleet and Logistics Management System',
+    title: 'FleetFlow — Global Logistics Control',
+    description: 'Fleet and Logistics Management System — track vehicles, trips, drivers and analytics in real time.',
+    icons: {
+        icon: '/logo.svg',
+        shortcut: '/logo.svg',
+    },
 };
 
 interface RootLayoutProps {

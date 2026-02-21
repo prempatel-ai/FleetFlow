@@ -1,0 +1,56 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#1D4ED8" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="256" height="256" rx="56" ry="56" fill="url(#bg)" filter="url(#shadow)"/>
+
+  <!-- Shine overlay -->
+  <rect width="256" height="128" rx="56" ry="56" fill="url(#shine)"/>
+
+  <!-- Route line (flowing S-curve path representing logistics flow) -->
+  <path
+    d="M 72 168 C 72 168 90 168 100 155 C 115 136 100 120 120 105 C 140 90 155 105 165 95 C 175 85 184 70 184 70"
+    stroke="white"
+    stroke-width="13"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+    opacity="0.35"
+  />
+
+  <!-- Truck body (simplified, modern) -->
+  <rect x="60" y="128" width="80" height="46" rx="8" fill="white"/>
+  <!-- Truck cab -->
+  <path d="M140 156 L140 128 L162 128 L178 148 L178 174 L140 174 Z" fill="white"/>
+  <!-- Windshield -->
+  <path d="M143 130 L143 150 L175 150 L162 130 Z" fill="url(#bg)" opacity="0.6"/>
+  <!-- Wheels -->
+  <circle cx="90" cy="178" r="13" fill="#1E40AF"/>
+  <circle cx="90" cy="178" r="6" fill="white" opacity="0.4"/>
+  <circle cx="158" cy="178" r="13" fill="#1E40AF"/>
+  <circle cx="158" cy="178" r="6" fill="white" opacity="0.4"/>
+  <!-- Truck window stripe -->
+  <rect x="63" y="133" width="74" height="28" rx="5" fill="url(#bg)" opacity="0.5"/>
+
+  <!-- Speed lines / flow lines above truck -->
+  <line x1="64" y1="110" x2="100" y2="110" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+  <line x1="64" y1="95" x2="88" y2="95" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+  <line x1="64" y1="80" x2="80" y2="80" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.3"/>
+
+  <!-- Location pin dot (destination) -->
+  <circle cx="188" cy="68" r="12" fill="white"/>
+  <circle cx="188" cy="68" r="6" fill="url(#bg)"/>
+  <circle cx="188" cy="80" r="4" fill="white" opacity="0"/>
+</svg>
