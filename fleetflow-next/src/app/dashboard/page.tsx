@@ -630,66 +630,102 @@ const Dashboard: React.FC = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-[110]"
+                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-stretch justify-end z-[110]"
+                            onClick={() => setShowScheduleModal(false)}
                         >
                             <motion.div
-                                initial={{ scale: 0.9, y: 20 }}
-                                animate={{ scale: 1, y: 0 }}
-                                exit={{ scale: 0.9, y: 20 }}
-                                className="bg-white rounded-[32px] shadow-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto"
+                                initial={{ x: '100%' }}
+                                animate={{ x: 0 }}
+                                exit={{ x: '100%' }}
+                                transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+                                className="w-full max-w-md bg-white/95 backdrop-blur-2xl shadow-2xl flex flex-col h-full"
+                                onClick={(e: React.MouseEvent) => e.stopPropagation()}
                             >
-                                <div className="flex items-center justify-between mb-8">
-                                    <div>
-                                        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Mission Schedule</h2>
-                                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Timeline of Fleet Operations</p>
+                                {/* Header */}
+                                <div className="px-7 pt-8 pb-6 border-b border-slate-100 flex-shrink-0">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                                <Calendar size={20} className="text-primary" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-lg font-extrabold text-slate-900 tracking-tight leading-tight">Mission Schedule</h2>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Fleet Operations Timeline</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => setShowScheduleModal(false)}
+                                            className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-700"
+                                        >
+                                            <X size={18} />
+                                        </button>
                                     </div>
-                                    <button onClick={() => setShowScheduleModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                                        <X size={20} className="text-slate-400" />
-                                    </button>
+                                    {/* Summary pills */}
+                                    <div className="flex gap-2 mt-5">
+                                        <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-wide border border-primary/10">
+                                            {trips.filter(t => t.status === 'Dispatched').length} Active
+                                        </span>
+                                        <span className="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-wide border border-emerald-100">
+                                            {trips.filter(t => t.status === 'Completed').length} Completed
+                                        </span>
+                                        <span className="px-3 py-1.5 rounded-full bg-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-wide">
+                                            {trips.length} Total
+                                        </span>
+                                    </div>
                                 </div>
 
-                                <div className="space-y-6">
+                                {/* Scrollable Timeline */}
+                                <div className="flex-1 overflow-y-auto scrollbar-hide px-7 py-6">
                                     {trips.length === 0 ? (
                                         <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-100 italic text-slate-400 font-bold text-sm">
                                             No missions scheduled for this period.
                                         </div>
                                     ) : (
-                                        [...trips].sort((a, b) => new Date(b.dispatchDate).getTime() - new Date(a.dispatchDate).getTime()).map((trip, idx) => (
-                                            <div key={trip._id} className="relative pl-8 pb-8 group last:pb-0">
-                                                {idx !== trips.length - 1 && (
-                                                    <div className="absolute left-3.5 top-8 bottom-0 w-0.5 bg-slate-100 group-hover:bg-primary/20 transition-colors" />
-                                                )}
-                                                <div className={`absolute left-0 top-1.5 w-7 h-7 rounded-full border-4 border-white shadow-lg flex items-center justify-center z-10 transition-transform group-hover:scale-110 ${trip.status === 'In Transit' || trip.status === 'Dispatched' ? 'bg-primary' :
-                                                    trip.status === 'Completed' ? 'bg-success' : 'bg-slate-200'
-                                                    }`}>
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                                                </div>
-                                                <div className="glass p-5 rounded-2xl border border-slate-100 hover:border-primary/20 transition-all">
-                                                    <div className="flex items-center justify-between mb-3">
-                                                        <span className="text-[10px] font-black tracking-widest uppercase text-slate-400">
-                                                            {new Date(trip.dispatchDate).toLocaleDateString()} at {new Date(trip.dispatchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </span>
-                                                        <StatusPill status={trip.status} />
+                                        <div className="space-y-0">
+                                            {[...trips].sort((a, b) => new Date(b.dispatchDate).getTime() - new Date(a.dispatchDate).getTime()).map((trip, idx, arr) => {
+                                                const isActive = trip.status === 'In Transit' || trip.status === 'Dispatched';
+                                                const isCompleted = trip.status === 'Completed';
+                                                return (
+                                                    <div key={trip._id} className="relative pl-9 pb-6 group last:pb-0">
+                                                        {idx !== arr.length - 1 && (
+                                                            <div className={`absolute left-[13px] top-7 bottom-0 w-0.5 ${isCompleted ? 'bg-emerald-100' : 'bg-slate-100'} group-hover:bg-primary/20 transition-colors`} />
+                                                        )}
+                                                        <div className={`absolute left-0 top-1 w-7 h-7 rounded-full shadow-md flex items-center justify-center z-10 ${isActive ? 'bg-primary' : isCompleted ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                                                            <div className="w-2 h-2 rounded-full bg-white" />
+                                                        </div>
+                                                        <div className="bg-slate-50 hover:bg-white border border-slate-100 hover:border-primary/20 hover:shadow-md rounded-2xl p-4 transition-all duration-200">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className="text-[10px] font-black tracking-widest uppercase text-slate-400">
+                                                                    {new Date(trip.dispatchDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                    {' · '}
+                                                                    {new Date(trip.dispatchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                </span>
+                                                                <StatusPill status={trip.status} />
+                                                            </div>
+                                                            <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5 flex-wrap">
+                                                                {trip.startPoint} <ChevronRight size={13} className="text-primary flex-shrink-0" /> {trip.endPoint}
+                                                            </h4>
+                                                            <div className="mt-2.5 flex items-center gap-4 text-[11px] font-semibold text-slate-400">
+                                                                <div className="flex items-center gap-1.5"><Truck size={11} /> {trip.vehicle?.name}</div>
+                                                                <div className="flex items-center gap-1.5"><User size={11} /> {trip.driver?.name}</div>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                                        {trip.startPoint} <ChevronRight size={14} className="text-primary" /> {trip.endPoint}
-                                                    </h4>
-                                                    <div className="mt-3 flex items-center gap-4 text-[11px] font-bold text-slate-500 italic">
-                                                        <div className="flex items-center gap-1.5"><Truck size={12} /> {trip.vehicle?.name}</div>
-                                                        <div className="flex items-center gap-1.5"><User size={12} /> {trip.driver?.name}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
+                                                );
+                                            })}
+                                        </div>
                                     )}
                                 </div>
 
-                                <button
-                                    onClick={() => setShowScheduleModal(false)}
-                                    className="w-full mt-8 py-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all"
-                                >
-                                    Dismiss Timeline
-                                </button>
+                                {/* Footer */}
+                                <div className="px-7 py-5 border-t border-slate-100 flex-shrink-0">
+                                    <button
+                                        onClick={() => setShowScheduleModal(false)}
+                                        className="w-full py-3.5 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10"
+                                    >
+                                        Close Timeline
+                                    </button>
+                                </div>
                             </motion.div>
                         </motion.div>
                     )}
