@@ -13,6 +13,7 @@ const tripSchema = new mongoose.Schema({
     endOdometer: { type: Number },
     revenue: { type: Number, default: 0 },
     fuelCost: { type: Number, default: 0 },
+    netProfit: { type: Number, default: 0 },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Trip', tripSchema);

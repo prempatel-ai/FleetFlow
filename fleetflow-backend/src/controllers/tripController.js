@@ -69,21 +69,31 @@ const completeTrip = async (req, res) => {
     try {
         const trip = await Trip.findById(req.params.id).populate('vehicle driver');
         if (!trip) return res.status(404).json({ message: 'Trip not found' });
+        if (trip.status === 'Completed') return res.status(400).json({ message: 'Trip is already completed' });
+
+        // Validate odometer reading
+        if (endOdometer !== undefined && trip.startOdometer !== undefined && endOdometer < trip.startOdometer) {
+            return res.status(400).json({ message: `End odometer (${endOdometer} km) cannot be less than start odometer (${trip.startOdometer} km)` });
+        }
+
+        // Calculate net profit
+        const netProfit = (trip.revenue || 0) - (trip.fuelCost || 0);
 
         trip.status = 'Completed';
         trip.completionDate = Date.now();
         trip.endOdometer = endOdometer;
+        trip.netProfit = netProfit;
         await trip.save();
 
         // Update Vehicle
         const vehicle = trip.vehicle;
         vehicle.status = 'Available';
-        vehicle.odometer = endOdometer;
+        if (endOdometer) vehicle.odometer = endOdometer;
         await vehicle.save();
 
         // Update Driver
         const driver = trip.driver;
-        driver.status = 'Available';
+        driver.status = 'Off Duty';
         await driver.save();
 
         res.json(trip);
