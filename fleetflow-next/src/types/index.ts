@@ -5,6 +5,7 @@ export interface User {
     name: string;
     email: string;
     role: UserRole;
+    profilePhoto?: string;
 }
 
 export type VehicleStatus = 'Available' | 'On Trip' | 'In Shop' | 'Out of Service' | 'Retired';

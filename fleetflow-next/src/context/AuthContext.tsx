@@ -8,6 +8,7 @@ interface AuthContextType {
     loading: boolean;
     login: (userData: User & { token: string }) => void;
     logout: () => void;
+    updateUser: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,10 +39,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(null);
     };
 
+    const updateUser = (updates: Partial<User>) => {
+        if (!user) return;
+        const updatedUser = { ...user, ...updates };
+        localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+    };
+
     const contextValue = useMemo(() => ({
         user,
         login,
         logout,
+        updateUser,
         loading
     }), [user, loading]);
 
