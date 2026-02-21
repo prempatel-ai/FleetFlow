@@ -1,421 +1,216 @@
 <div align="center">
+  <img src="fleetflow-next/public/logo.svg" width="80" alt="FleetFlow" />
 
-<img src="fleetflow-next/public/logo.svg" alt="FleetFlow Logo" width="88" height="88" />
+  <h1>FleetFlow</h1>
+  <p><strong>Fleet & Logistics Management — built for the people actually running the routes.</strong></p>
 
-# FleetFlow
-
-### Modular Fleet & Logistics Management System
-
-> *Replacing manual logbooks with a centralized, rule-based digital hub that optimizes the delivery fleet lifecycle, monitors driver safety, and tracks financial performance.*
-
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org)
-[![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=node.js)](https://nodejs.org)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat-square&logo=mongodb)](https://mongodb.com)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)](https://typescriptlang.org)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com)
-[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+  [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org)
+  [![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=node.js)](https://nodejs.org)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat-square&logo=mongodb)](https://mongodb.com)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)](https://typescriptlang.org)
 
 </div>
 
 ---
 
-## Problem Statement Coverage
-
-FleetFlow was built to fully satisfy the PS requirements. The table below maps every stated requirement to its implementation:
-
-| PS Requirement | Status | Where |
-|---|:---:|---|
-| Secure login with role-based access | ✅ | `/login` — JWT auth, Manager/Dispatcher roles |
-| Fleet KPI dashboard (Active, Maintenance, Utilization, Pending) | ✅ | `/dashboard` — live from DB |
-| Vehicle CRUD with capacity & odometer | ✅ | `/vehicles` |
-| Trip lifecycle: Draft → Dispatched → Completed → Cancelled | ✅ | `/trips` |
-| Cargo weight validation against vehicle capacity | ✅ | Backend `tripController.js` |
-| Driver assignment blocked if license expired | ✅ | Dispatch validation, backend check |
-| Maintenance log auto-sets vehicle to "In Shop" | ✅ | `logController.js` + `vehicleController.js` |
-| Fuel & expense logging per vehicle | ✅ | `/maintenance` |
-| Total operational cost = Fuel + Maintenance per vehicle | ✅ | `/financials` + analytics engine |
-| Driver performance: safety score, trip completion rate | ✅ | `/drivers` profile page |
-| License expiry compliance alerts (auto-generated) | ✅ | Dashboard System Alerts, live from DB |
-| Analytics: Fuel efficiency (km/L), Vehicle ROI formula | ✅ | `/analytics` |
-| CSV export for monthly reports | ✅ | Export button on Analytics page |
-| Real-time map with active trip routes | ✅ | `/trips` — Leaflet + OSRM road routes |
-| Scannable data tables with status pills | ✅ | All list pages |
-| Real-time vehicle/driver availability state management | ✅ | Status synced across trips, maintenance, dispatcher |
+Most fleet software either costs a fortune or looks like it was built in 2008. FleetFlow is neither. It's a full-stack web application that gives a logistics team everything they need in one place — dispatch, vehicle health, driver compliance, route visualization, and financial reporting — without spreadsheets, WhatsApp chains, or clipboards.
 
 ---
 
-## Target Users
+## What it actually does
 
-| Role | What FleetFlow gives them |
-|---|---|
-| **Fleet Manager** | Dashboard KPIs, system alerts, vehicle health overview, analytics |
-| **Dispatcher** | Trip creation with capacity validation, live dispatch, route map |
-| **Safety Officer** | License expiry alerts, driver compliance profiles |
-| **Financial Analyst** | ROI report, fuel cost breakdown, CSV exports, monthly summaries |
+### Dispatching trips that make sense
 
----
+You pick a vehicle, you pick a driver. But before the trip goes through, the system checks three things silently in the background:
 
-## System Pages
+- Is the vehicle available? (Not on another trip, not in the shop)
+- Is the driver's license valid?
+- Does the cargo weight fit inside the vehicle's rated capacity?
 
-### Page 1 — Login & Authentication
+If any of those fail, the trip doesn't dispatch. No override, no workaround. This is enforced at the API level, not just the UI.
 
-- Email + password authentication with JWT tokens
-- Role-based access: **Manager** and **Dispatcher** roles
-- Persistent sessions with protected route redirects
-- Profile management with photo upload support
+Once dispatched, the vehicle and driver are both locked out of new assignments automatically. When the trip completes, the driver marks it done, the odometer updates, and everything flips back to available.
 
-### Page 2 — Command Center (Dashboard)
+### A map that shows real routes
 
-Real-time fleet overview pulled fresh from the database on every load:
+The trips page shows a live map of all currently active (dispatched) trips. Not pins. Actual road routes — the kind that follow highways and city streets.
 
-**KPI Cards**
-- **Active Fleet** — count of vehicles currently "On Trip"
-- **In Maintenance** — vehicles marked "In Shop"
-- **Utilization Rate** — % of fleet assigned vs. total
-- **Pending Cargo** — trips in Draft or Dispatched state
+The system geocodes location names like "Nagpur Warehouse" or "Surat Textile Hub" using the OpenStreetMap Nominatim API, fetches the road path from OSRM, and draws it as a polyline on a Leaflet map. No Google Maps. No API keys. No billing.
 
-**Operational Log** — full trip timeline with status-color-coded entries
+One edge case worth mentioning: user-typed location names like "Pune Industrial Area" don't always exist in OpenStreetMap. So there's a fallback — the system strips generic suffixes (Hub, Warehouse, Depot, Port, Zone, etc.) and retries with just the city name. It works surprisingly well.
 
-**System Alerts** — dynamically generated, not hardcoded:
-- Vehicles with odometer > 15,000 km → Maintenance alert
-- Drivers with license expiring within 30 days → Compliance alert
-- Severity calculated automatically (Critical / Warning)
+Routes appear one by one as they resolve rather than waiting for everything. So large fleets don't produce a loading spinner that never ends.
 
-**Vehicle Filter Bar** — filter by Type (Truck, Van, Bike), Status (Ready, Busy), sort by newest/oldest
+### Maintenance pulls vehicles off the road automatically
 
-**Mission Schedule Drawer** — slide-over panel with complete trip timeline, count pills, and status-coded dots
+When a manager logs a maintenance event against a vehicle, that vehicle's status immediately flips to "In Shop." It disappears from the dispatcher's vehicle dropdown. No flag to set, no extra step. The data and the state stay consistent.
 
-### Page 3 — Vehicle Registry
+When maintenance is done and the vehicle is cleared, it comes back into the pool.
 
-Full CRUD management for the physical fleet:
+### Alerts that come from the data
 
-- **Name, Model, License Plate** (unique identifier enforced at DB level)
-- **Max Load Capacity** (kg) — used in cargo validation during dispatch
-- **Odometer tracking** — updated on trip completion
-- **Status management**: Available → On Trip → In Shop → Retired
-- **Out of Service toggle** — manually retire a vehicle from the active pool
-- Vehicle hidden from Dispatcher selection when status is "In Shop" or "Retired"
+The System Alerts panel on the dashboard is not a config file or a hardcoded list. Every time the page loads, the system scans:
 
-### Page 4 — Trip Dispatcher & Management
+- All vehicles where `odometer > 15,000 km` and status is not already "In Shop" → maintenance overdue
+- All drivers where `licenseExpiry < today + 30 days` → compliance risk
 
-End-to-end trip workflow:
+Severity is calculated automatically. Past-due dates are Critical. Near-future dates are Warning. The count badge reflects the real number.
 
-**Create Trip Form**
-- Select from **Available vehicles only** (In Shop / On Trip vehicles filtered out)
-- Select from **Available drivers only** (On Duty, valid license)
-- Enter cargo weight, start point, end point, revenue
+### Financial tracking tied to actual trips
 
-**Validation Rule (enforced on backend)**
-```
-if (cargoWeight > vehicle.maxCapacity) → reject with error
-```
+Fuel logs and maintenance records are linked to specific vehicle IDs. The analytics engine uses those relationships to compute:
 
-**Trip Lifecycle**
-```
-Draft → Dispatched → Completed
-              ↓
-           Cancelled
-```
-- On **Dispatch**: Vehicle status → On Trip, Driver status → On Duty
-- On **Complete**: Vehicle status → Available, Driver status → Off Duty, odometer updated
+- **Fuel efficiency** (km per litre, per vehicle, over time)
+- **Vehicle ROI** = `(Revenue − Fuel − Maintenance) / Acquisition Cost`
+- **Monthly financial summary** — revenue, costs, net profit per month
+- **Top 5 costliest vehicles** — useful for depreciation decisions
 
-**Live Route Map**
-- Active (Dispatched) trips plotted as actual road-following routes
-- Geocoding via Nominatim (free, no API key)
-- Routing via OSRM (free, no API key)
-- Smart fallback: "Surat Textile Hub" → strips location suffix → geocodes "Surat"
-- Routes appear progressively as each trip resolves
-
-**Search & Filter** — by Trip ID, vehicle name, driver name, status, date range
-
-### Page 5 — Maintenance & Service Logs
-
-Preventative and reactive health tracking:
-
-- Log **Maintenance** events with description and cost → Vehicle auto-set to **"In Shop"**
-- Vehicle immediately removed from Dispatcher's available pool
-- View full maintenance history per vehicle
-- Cost linked to Vehicle ID for Analytics ROI calculation
-
-### Page 6 — Fuel & Expense Logging
-
-Financial tracking per asset:
-
-- Record **Liters, Cost per fill-up, and Date** against any vehicle
-- Logs tied directly to Vehicle ID
-- **Automated Total Operational Cost** = Σ Fuel + Σ Maintenance per vehicle
-- Drives the cost side of the Vehicle ROI formula in Analytics
-
-### Page 7 — Driver Performance & Safety Profiles
-
-Human resource and compliance management:
-
-**Compliance**
-- License expiry date tracked per driver
-- Driver **blocked from dispatch** if license is expired
-- License expiry within 30 days → System Alert fires on dashboard
-
-**Performance Metrics**
-- Trip completion rate
-- Total trips assigned
-- Safety Score display
-
-**Status Toggle**
-- On Duty / Off Duty / Suspended
-- Suspended drivers excluded from Dispatcher pool
-
-### Page 8 — Operational Analytics & Financial Reports
-
-Data-driven decision making:
-
-**KPI Cards**
-- Total Fuel Cost
-- Fleet ROI
-- Utilization Rate
-
-**Charts**
-- Fuel Efficiency trend (km/L over months) — line chart
-- Top 5 Costliest Vehicles — bar chart
-
-**Tables**
-- Vehicle ROI Report: `ROI = (Revenue − (Maintenance + Fuel)) / Acquisition Cost`
-- Monthly Financial Summary: Revenue, Fuel, Maintenance, Net Profit per month
-
-**Filters & Export**
-- Date range filter: Last 7 / 30 / 90 Days, All Time
-- One-click **CSV export** of financial summary (filename includes range + date)
+Everything's filterable by date range (7 / 30 / 90 days, all time) and exportable to CSV with one click.
 
 ---
 
-## Business Logic & Workflow
+## Tech choices and why
 
-```
-1. VEHICLE INTAKE
-   Add "Van-05" (500 kg capacity) → Status: Available
+| Layer | What | Why |
+|---|---|---|
+| Frontend | Next.js 15 + TypeScript | App Router, dynamic imports for Leaflet (SSR incompatible), strong typing |
+| Styling | Tailwind CSS + Framer Motion | Fast iteration on layout, smooth transitions without a component library |
+| Maps | Leaflet + React-Leaflet | Open source, lightweight, works perfectly with SSR disabled |
+| Geocoding | Nominatim (OpenStreetMap) | Free, no key, good coverage for Indian cities |
+| Routing | OSRM public API | Free road-route engine, returns actual GPS coordinates |
+| Charts | Chart.js + react-chartjs-2 | Simple API, handles the line + bar charts needed |
+| Backend | Node.js + Express | Straightforward REST API, fast to build and easy to extend |
+| Database | MongoDB + Mongoose | Flexible schema, references between trips/vehicles/drivers/logs work cleanly |
+| Auth | JWT + bcryptjs | Stateless, no session management overhead |
 
-2. COMPLIANCE CHECK
-   Add Driver "Alex" with license expiry date
-   → System verifies validity before allowing dispatch assignment
-
-3. DISPATCHING
-   Assign Alex to Van-05 for 450 kg cargo
-   → Backend check: 450 < 500 ✅ PASS
-   → Vehicle: Available → On Trip
-   → Driver: Off Duty → On Duty
-   → Trip plotted on live route map
-
-4. TRIP COMPLETION
-   Driver marks trip "Done", enters final odometer
-   → Vehicle: On Trip → Available
-   → Driver: On Duty → Off Duty
-   → Revenue, fuel cost recorded against vehicle
-
-5. MAINTENANCE
-   Manager logs "Oil Change" for Van-05
-   → Auto-logic: Van-05 status → In Shop
-   → Van-05 hidden from Dispatcher's vehicle dropdown
-
-6. ANALYTICS
-   System recalculates cost-per-km, ROI, and fuel efficiency
-   from linked fuel logs and trip revenue records
-```
+One specific CSS decision worth noting: the sidebar uses `position: fixed` rather than `position: sticky`. There's a browser bug where an ancestor element with `overflow: hidden` silently breaks sticky positioning — the sidebar would scroll away on long pages. Fixed positioning avoids this entirely; the main content just gets a `margin-left` equal to the sidebar width.
 
 ---
 
-## Tech Stack
-
-### Frontend
-
-| Technology | Role |
-|---|---|
-| Next.js 15 (App Router) | React framework, SSR, dynamic imports |
-| TypeScript | Type-safe components and API data |
-| Tailwind CSS | Utility-first responsive styling |
-| Framer Motion | Animations, slide drawers, page transitions |
-| Leaflet + React-Leaflet | Interactive map with polyline routes |
-| Chart.js + react-chartjs-2 | Line chart & bar chart for analytics |
-| Lucide React | Icon library |
-| Nominatim API | Free geocoding — place names to coordinates |
-| OSRM API | Free road routing — no API key required |
-
-### Backend
-
-| Technology | Role |
-|---|---|
-| Node.js + Express.js | REST API server |
-| MongoDB + Mongoose | Database with relational schema linking trips, vehicles, drivers, logs |
-| JWT + bcryptjs | Authentication and password security |
-| dotenv | Environment configuration |
-
----
-
-## Architecture
+## Project layout
 
 ```
 FleetFlow/
-├── fleetflow-next/              # Frontend (Next.js + TypeScript)
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── dashboard/       # Command Center — KPIs, alerts, log, map
-│   │   │   ├── trips/           # Trip dispatcher, lifecycle, route map
-│   │   │   ├── vehicles/        # Vehicle registry CRUD
-│   │   │   ├── drivers/         # Driver profiles & safety
-│   │   │   ├── maintenance/     # Fuel & service logs
-│   │   │   ├── financials/      # Per-vehicle cost breakdown
-│   │   │   ├── analytics/       # Charts, KPIs, CSV export
-│   │   │   └── login/           # Auth page
-│   │   ├── components/
-│   │   │   ├── Layout.tsx        # Fixed sidebar + header shell
-│   │   │   ├── Sidebar.tsx       # Navigation with active state
-│   │   │   ├── TripMap.tsx       # Leaflet map with OSRM routes
-│   │   │   ├── StatusPill.tsx    # Reusable status badge
-│   │   │   └── ProfileModal.tsx  # User profile editor
-│   │   ├── context/
-│   │   │   └── AuthContext.tsx   # Global auth state
-│   │   └── utils/
-│   │       └── api.ts            # Axios client
-│   └── public/
-│       └── logo.svg              # FleetFlow logo
+├── fleetflow-next/              # Frontend
+│   └── src/
+│       ├── app/
+│       │   ├── dashboard/       # KPI cards, live log, alerts, route map
+│       │   ├── trips/           # Dispatch workflow, trip list, Leaflet map
+│       │   ├── vehicles/        # Registry, status management
+│       │   ├── drivers/         # Profiles, compliance, safety scores
+│       │   ├── maintenance/     # Fuel fill-ups and service logs
+│       │   ├── financials/      # Per-vehicle cost breakdown
+│       │   ├── analytics/       # Charts, ROI table, CSV export
+│       │   └── login/
+│       ├── components/
+│       │   ├── TripMap.tsx      # Geocoding + OSRM routing + Leaflet render
+│       │   ├── Sidebar.tsx      # Always-visible nav (fixed position)
+│       │   ├── Layout.tsx       # Sidebar + header shell
+│       │   └── StatusPill.tsx   # Reusable status badge
+│       └── utils/api.ts         # Axios client with base URL
 │
-└── fleetflow-backend/            # Backend (Node.js + Express)
+└── fleetflow-backend/           # Backend
     └── src/
         ├── controllers/
-        │   ├── tripController.js       # Trip CRUD + dispatch/complete logic
-        │   ├── vehicleController.js    # Vehicle CRUD + status management
-        │   ├── driverController.js     # Driver CRUD + compliance checks
-        │   ├── logController.js        # Fuel/maintenance logs + auto-status
-        │   └── analyticsController.js  # KPIs, ROI, monthly financials
-        ├── models/
-        │   ├── Trip.js       # Revenue, fuel cost, net profit fields
-        │   ├── Vehicle.js    # Capacity, odometer, status
-        │   ├── Driver.js     # License expiry, safety score
-        │   ├── Log.js        # Fuel (liters) or Maintenance (cost + desc)
-        │   └── User.js       # Auth user record
+        │   ├── tripController.js        # Dispatch logic + cargo validation
+        │   ├── vehicleController.js     # Status sync on dispatch/complete
+        │   ├── driverController.js      # License checks
+        │   ├── logController.js         # Auto sets vehicle to In Shop
+        │   └── analyticsController.js  # ROI, fuel efficiency, monthly data
+        ├── models/                      # Trip, Vehicle, Driver, Log, User
         ├── routes/
-        ├── config/db.js
-        └── seed.js           # One-command demo data population
+        └── seed.js                      # Populates demo data in one command
 ```
 
 ---
 
-## Running Locally
+## Running it locally
 
-### Prerequisites
-- [Node.js](https://nodejs.org) v18+
-- [MongoDB](https://mongodb.com) (local) or a free [Atlas](https://cloud.mongodb.com) cluster
-- `npm`
+You need Node.js v18+ and MongoDB (local or Atlas).
 
----
-
-### Step 1 — Backend
+**Backend**
 
 ```bash
 cd fleetflow-backend
 npm install
 ```
 
-Create `fleetflow-backend/.env`:
-
+Create `.env`:
 ```env
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/fleetflow
-JWT_SECRET=your_secret_key_here
+JWT_SECRET=pick_anything_here
 ```
 
 ```bash
 npm run dev
-# API running at http://localhost:5000
 ```
 
----
-
-### Step 2 — Seed Demo Data *(recommended)*
+**Seed demo data** (optional but recommended — gives you 6 months of trips, fuel logs, and maintenance records immediately):
 
 ```bash
 node src/seed.js
 ```
 
-Populates realistic vehicles, drivers, 6 months of trips, fuel logs, and maintenance records so every chart and analytics feature works immediately.
-
----
-
-### Step 3 — Frontend
+**Frontend**
 
 ```bash
 cd fleetflow-next
 npm install
 ```
 
-Create `fleetflow-next/.env.local`:
-
+Create `.env.local`:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
 ```bash
 npm run dev
-# App running at http://localhost:3000
 ```
 
-Open `http://localhost:3000` → Register → Login → Explore.
+Open `http://localhost:3000`, register an account, and log in.
 
 ---
 
-## API Reference
+## API surface
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | Login, receive JWT |
-| GET | `/api/vehicles` | List all vehicles |
-| POST | `/api/vehicles` | Add vehicle |
-| PUT | `/api/vehicles/:id` | Update vehicle |
-| DELETE | `/api/vehicles/:id` | Remove vehicle |
-| GET | `/api/trips` | List all trips |
-| POST | `/api/trips` | Create trip (validates cargo vs capacity) |
-| PUT | `/api/trips/:id/dispatch` | Dispatch trip, update vehicle & driver status |
-| PUT | `/api/trips/:id/complete` | Complete trip, update odometer |
-| GET | `/api/drivers` | List all drivers |
-| POST | `/api/drivers` | Add driver |
-| PUT | `/api/drivers/:id` | Update driver |
-| GET | `/api/logs` | List fuel & maintenance logs |
-| POST | `/api/logs` | Add log (maintenance auto-sets vehicle to In Shop) |
-| GET | `/api/analytics/dashboard` | Dashboard KPIs |
-| GET | `/api/analytics/overall?range=30` | Full analytics with date range filter |
+```
+POST   /api/auth/register
+POST   /api/auth/login
 
----
+GET    /api/vehicles
+POST   /api/vehicles
+PUT    /api/vehicles/:id
+DELETE /api/vehicles/:id
 
-## Key Technical Decisions
+GET    /api/drivers
+POST   /api/drivers
+PUT    /api/drivers/:id
 
-**Zero paid APIs** — Nominatim (geocoding) and OSRM (routing) are both open-source public services requiring no API key. The map works fully without any external account or billing setup.
+GET    /api/trips
+POST   /api/trips                  # validates cargo vs capacity
+PUT    /api/trips/:id/dispatch     # locks vehicle + driver
+PUT    /api/trips/:id/complete     # releases + updates odometer
 
-**Geocoding fallback chain** — User-typed place names like "Nagpur Warehouse" may not exist in OpenStreetMap. The geocoder strips domain-specific suffixes (Hub, Warehouse, Depot, Center, Port, Zone, etc.) and retries with the extracted city name, making route rendering resilient to real-world informal data entry.
+GET    /api/logs
+POST   /api/logs                   # maintenance type auto-sets vehicle In Shop
 
-**Progressive map rendering** — Routes appear one by one as each resolves, rather than waiting for all trips to complete. Makes large fleets usable without a long white screen.
-
-**Availability pool enforcement** — Vehicle and driver dropdowns in the trip form are filtered server-side. An "In Shop" vehicle or an "On Duty" driver cannot be selected for a new trip, preventing double-booking at the data layer.
-
-**Live alert generation** — System Alerts are generated fresh from database values on every page load. No hardcoded alert records. Odometer thresholds and date math run at request time.
-
-**Fixed sidebar** — Uses CSS `position: fixed` instead of the conventional `sticky`, which avoids a browser-level bug where `overflow: hidden` on an ancestor silently breaks sticky positioning, causing the sidebar to scroll away on long pages.
+GET    /api/analytics/dashboard
+GET    /api/analytics/overall?range=30
+```
 
 ---
 
-## What's Next *(if extended)*
+## What's still open
 
-- [ ] Role-Based Access Control: dispatcher cannot access analytics, etc.
-- [ ] Push notifications for critical alerts
-- [ ] PDF export for audit reports
-- [ ] Mobile-responsive dispatcher view
-- [ ] Region/city filter for large multi-depot fleets
-- [ ] Custom date range picker on analytics
+- Role-based UI restrictions (dispatcher shouldn't see analytics)  
+- PDF export alongside CSV  
+- Mobile layout for dispatchers on the road  
+- Custom date range picker  
+- Multi-depot / region filtering for larger operations
 
 ---
 
 <div align="center">
-
-Built for the hackathon — every feature, validation rule, and calculation is functional and connected to a live database.
-
-*Made with focus, strong chai ☕, and a genuine care for getting the details right.*
-
+  <sub>Built from scratch. Every validation, every status transition, every route on that map — it all runs against a live database.</sub>
 </div>
