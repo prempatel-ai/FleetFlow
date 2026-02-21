@@ -12,7 +12,6 @@ import {
     Wrench,
     Fuel,
     BarChart3,
-    LogOut,
     ChevronRight,
     Search
 } from 'lucide-react';
@@ -53,18 +52,6 @@ const Sidebar: React.FC = () => {
                 </div>
             </div>
 
-            {/* User Profile Card - Simplified & Modern */}
-            <div className="px-6 mb-8">
-                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner">
-                        {auth.user?.name?.[0] || 'U'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-800 truncate">{auth.user?.name}</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{auth.user?.role}</p>
-                    </div>
-                </div>
-            </div>
 
             {/* Navigation */}
             <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto scrollbar-hide">
@@ -101,16 +88,6 @@ const Sidebar: React.FC = () => {
                 })}
             </nav>
 
-            {/* Footer Actions */}
-            <div className="p-6 mt-auto">
-                <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center justify-center gap-3 px-6 py-4 text-slate-500 hover:text-danger hover:bg-danger/5 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all duration-300 group"
-                >
-                    <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
-                    Sign Out System
-                </button>
-            </div>
         </div>
     );
 };
