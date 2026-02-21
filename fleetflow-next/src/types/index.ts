@@ -23,7 +23,7 @@ export interface Vehicle {
     acquisitionCost?: number;
 }
 
-export type DriverStatus = 'Available' | 'On Duty' | 'Off Duty' | 'Suspended' | 'On Trip';
+export type DriverStatus = 'Available' | 'On Duty' | 'Off Duty' | 'Suspended' | 'On Trip' | 'Taking a Break';
 
 export interface Driver {
     _id: string;
@@ -34,6 +34,8 @@ export interface Driver {
     licenseExpiry?: string;
     safetyScore?: number;
     tripCompletionRate?: number;
+    vehicleCategory?: string[];
+    complaints?: number;
 }
 
 export type TripStatus = 'Draft' | 'Dispatched' | 'In Transit' | 'Completed' | 'Cancelled';

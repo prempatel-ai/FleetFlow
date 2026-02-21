@@ -22,11 +22,23 @@ interface TripMapProps {
     }[];
 }
 
+const DEFAULT_CENTER: [number, number] = [20.5937, 78.9629];
+
 const TripMap: React.FC<TripMapProps> = ({ markers }) => {
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!isMounted) {
+        return <div className="h-[400px] w-full rounded-2xl bg-slate-50 animate-pulse border border-slate-100 shadow-sm" />;
+    }
+
     return (
         <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-slate-100 shadow-sm relative z-0">
             <MapContainer
-                center={[20.5937, 78.9629]} // Center of India or default
+                center={DEFAULT_CENTER}
                 zoom={5}
                 style={{ height: '100%', width: '100%' }}
             >

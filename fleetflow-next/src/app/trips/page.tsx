@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Plus, MapPin, Scale, AlertCircle, Map as MapIcon } from 'lucide-react';
 import api from '../../utils/api';
@@ -39,7 +39,7 @@ const Trips: React.FC = () => {
             ]);
             setTrips(tripsRes.data);
             setVehicles(vehiclesRes.data.filter((v: Vehicle) => v.status === 'Available'));
-            setDrivers(driversRes.data.filter((d: Driver) => d.status === 'Available' || d.status === 'On Duty'));
+            setDrivers(driversRes.data); // Keep all drivers for filtering
         } catch (err) {
             console.error('Failed to fetch trip data');
         } finally {
@@ -52,13 +52,30 @@ const Trips: React.FC = () => {
         setError('');
         try {
             await api.post('/trips', newTrip);
-            fetchData();
+            await fetchData();
             setShowModal(false);
             setNewTrip({ vehicleId: '', driverId: '', cargoWeight: '', startPoint: '', endPoint: '', revenue: '' });
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to dispatch trip');
         }
     };
+
+    const qualifiedDrivers = useMemo(() => {
+        const selectedVehicle = vehicles.find(v => v._id === newTrip.vehicleId);
+
+        return drivers.filter(d => {
+            // 1. Availability Check
+            const isAvailable = d.status === 'Available' || d.status === 'On Duty';
+
+            // 2. License Expiry Check
+            const isLicenseValid = d.licenseExpiry ? new Date(d.licenseExpiry) > new Date() : false;
+
+            // 3. Category Match (if vehicle selected)
+            const categoryMatch = !selectedVehicle || d.vehicleCategory?.includes(selectedVehicle.type);
+
+            return isAvailable && isLicenseValid && categoryMatch;
+        });
+    }, [drivers, newTrip.vehicleId, vehicles]);
 
     return (
         <Layout>
@@ -176,12 +193,16 @@ const Trips: React.FC = () => {
                                             value={newTrip.driverId}
                                             onChange={e => setNewTrip({ ...newTrip, driverId: e.target.value })}
                                             className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
+                                            disabled={!newTrip.vehicleId}
                                         >
-                                            <option value="">-- Choose Operator --</option>
-                                            {drivers.map(d => (
-                                                <option key={d._id} value={d._id}>{d.name}</option>
+                                            <option value="">{!newTrip.vehicleId ? 'Select vehicle first' : '-- Choose Operator --'}</option>
+                                            {qualifiedDrivers.map((d: Driver) => (
+                                                <option key={d._id} value={d._id}>{d.name} {d.safetyScore ? `(Score: ${d.safetyScore})` : ''}</option>
                                             ))}
                                         </select>
+                                        {newTrip.vehicleId && qualifiedDrivers.length === 0 && (
+                                            <p className="text-[10px] text-danger mt-1 font-bold animate-pulse">No qualified operators available for this asset type.</p>
+                                        )}
                                     </div>
                                 </div>
 

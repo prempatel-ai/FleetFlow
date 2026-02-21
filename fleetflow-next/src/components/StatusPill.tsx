@@ -16,6 +16,7 @@ const StatusPill: React.FC<StatusPillProps> = ({ status }) => {
         'Completed': 'bg-success/10 text-success border-success/20',
         'Dispatched': 'bg-primary/10 text-primary border-primary/20',
         'Cancelled': 'bg-danger/10 text-danger border-danger/20',
+        'Taking a Break': 'bg-warning/10 text-warning border-warning/20',
     };
 
     return (
