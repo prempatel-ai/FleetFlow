@@ -7,7 +7,7 @@ export interface User {
     role: UserRole;
 }
 
-export type VehicleStatus = 'Available' | 'On Trip' | 'In Shop' | 'Retired';
+export type VehicleStatus = 'Available' | 'On Trip' | 'In Shop' | 'Out of Service' | 'Retired';
 
 export interface Vehicle {
     _id: string;
@@ -22,7 +22,7 @@ export interface Vehicle {
     acquisitionCost?: number;
 }
 
-export type DriverStatus = 'Available' | 'On Duty' | 'Off Duty';
+export type DriverStatus = 'Available' | 'On Duty' | 'Off Duty' | 'Suspended' | 'On Trip';
 
 export interface Driver {
     _id: string;
@@ -35,7 +35,7 @@ export interface Driver {
     tripCompletionRate?: number;
 }
 
-export type TripStatus = 'Scheduled' | 'In Transit' | 'Completed' | 'Cancelled';
+export type TripStatus = 'Draft' | 'Dispatched' | 'In Transit' | 'Completed' | 'Cancelled';
 
 export interface Trip {
     _id: string;

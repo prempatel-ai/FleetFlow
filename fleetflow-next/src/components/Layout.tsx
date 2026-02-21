@@ -35,10 +35,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
 
     return (
-        <div className="flex bg-slate-50 min-h-screen">
+        <div className="flex bg-background min-h-screen relative overflow-hidden font-outfit selection:bg-primary/20">
+            {/* Mesh Background Effects - Optimized for Lightness */}
+            <div className="fixed inset-0 pointer-events-none opacity-20">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[80px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-success/15 rounded-full blur-[60px]" />
+                <div className="absolute top-[20%] right-[10%] w-[25%] h-[25%] bg-accent/15 rounded-full blur-[50px]" />
+            </div>
+
             <Sidebar />
-            <main className="flex-1 p-8 overflow-y-auto">
-                <div className="max-w-7xl mx-auto">
+
+            <main className="flex-1 p-6 md:p-8 lg:p-10 relative z-10 h-screen overflow-y-auto overflow-x-hidden scrollbar-hide">
+                <div className="max-w-7xl mx-auto space-y-10 animate-fade-in">
                     {children}
                 </div>
             </main>
