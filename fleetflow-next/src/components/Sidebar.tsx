@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard,
     Car,
@@ -11,7 +12,9 @@ import {
     Wrench,
     Fuel,
     BarChart3,
-    LogOut
+    LogOut,
+    ChevronRight,
+    Search
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -36,48 +39,76 @@ const Sidebar: React.FC = () => {
     ];
 
     return (
-        <div className="w-64 bg-white border-r border-slate-200 h-screen sticky top-0 flex flex-col">
-            <div className="p-6 border-b border-slate-100">
-                <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-                    FleetFlow
-                </h1>
-                <p className="text-xs text-slate-400 font-medium">Logistics Hub</p>
+        <div className="w-72 bg-white/80 backdrop-blur-xl border-r border-slate-200/50 h-screen sticky top-0 flex flex-col z-50 transition-all duration-300">
+            {/* Logo Section */}
+            <div className="p-8 mb-4">
+                <div className="flex items-center gap-3 group cursor-pointer">
+                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/25 rotate-3 group-hover:rotate-0 transition-transform">
+                        <div className="w-4 h-4 border-2 border-white rounded rotate-45" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-none mb-1">FleetFlow</h1>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Global Logistics</p>
+                    </div>
+                </div>
             </div>
 
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            {/* User Profile Card - Simplified & Modern */}
+            <div className="px-6 mb-8">
+                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner">
+                        {auth.user?.name?.[0] || 'U'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-800 truncate">{auth.user?.name}</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{auth.user?.role}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto scrollbar-hide">
                 {navItems.map((item) => {
-                    const isActive = pathname === item.path;
+                    const isActive = pathname === item.path || (pathname === '/' && item.path === '/dashboard');
                     const Icon = item.icon;
                     return (
                         <Link
                             key={item.name}
                             href={item.path}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-50'
-                                }`}
+                            className="block relative group"
                         >
-                            {Icon && <Icon size={20} />}
-                            {item.name}
+                            <div className={`flex items-center justify-between px-4 py-3.5 rounded-2xl font-semibold transition-all duration-300 relative z-10 ${isActive
+                                ? 'text-primary'
+                                : 'text-slate-500 hover:text-slate-900'
+                                }`}>
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-2 rounded-lg transition-colors ${isActive ? 'bg-primary/10' : 'bg-transparent group-hover:bg-slate-100'
+                                        }`}>
+                                        <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                                    </div>
+                                    <span className="text-[13px] tracking-tight">{item.name}</span>
+                                </div>
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="sidebar-active"
+                                        className="absolute inset-0 bg-primary/5 rounded-2xl border border-primary/10 -z-10 shadow-[0_4px_12px_rgba(37,99,235,0.08)]"
+                                    />
+                                )}
+                                {isActive && <ChevronRight size={14} className="text-primary/50" />}
+                            </div>
                         </Link>
                     );
                 })}
             </nav>
 
-            <div className="p-4 border-t border-slate-100">
-                <div className="flex items-center gap-3 px-4 py-3 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                        {auth.user?.name?.[0] || 'U'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{auth.user?.name}</p>
-                        <p className="text-xs text-slate-500 truncate">{auth.user?.role}</p>
-                    </div>
-                </div>
+            {/* Footer Actions */}
+            <div className="p-6 mt-auto">
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-slate-600 hover:text-danger hover:bg-danger/5 rounded-lg font-medium transition-colors"
+                    className="w-full flex items-center justify-center gap-3 px-6 py-4 text-slate-500 hover:text-danger hover:bg-danger/5 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all duration-300 group"
                 >
-                    <LogOut size={20} />
-                    Sign Out
+                    <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
+                    Sign Out System
                 </button>
             </div>
         </div>
