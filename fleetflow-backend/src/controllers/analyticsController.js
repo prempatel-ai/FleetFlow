@@ -49,8 +49,15 @@ const getDashboardStats = async (req, res) => {
 const getOverallAnalytics = async (req, res) => {
     try {
         const vehicles = await Vehicle.find();
-        const logs = await Log.find().sort({ date: 1 });
-        const trips = await Trip.find({ status: 'Completed' });
+
+        // Date range filter
+        const range = req.query.range ? parseInt(req.query.range) : null;
+        const dateFilter = range ? { $gte: new Date(Date.now() - range * 24 * 60 * 60 * 1000) } : undefined;
+        const logQuery = dateFilter ? { date: dateFilter } : {};
+        const tripQuery = { status: 'Completed', ...(dateFilter ? { completionDate: dateFilter } : {}) };
+
+        const logs = await Log.find(logQuery).sort({ date: 1 });
+        const trips = await Trip.find(tripQuery);
 
         // 1. Utilization Breakdown
         const utilization = {
@@ -100,10 +107,55 @@ const getOverallAnalytics = async (req, res) => {
             };
         }));
 
+        // 4. Fleet-wide KPI Summary
+        const totalFuelCost = logs.filter(l => l.type === 'Fuel').reduce((acc, l) => acc + l.amount, 0);
+        const totalMaintenance = logs.filter(l => l.type === 'Maintenance').reduce((acc, l) => acc + l.amount, 0);
+        const totalRevenue = trips.reduce((acc, t) => acc + (t.revenue || 0), 0);
+        const totalOpCost = totalFuelCost + totalMaintenance;
+        const overallROI = totalOpCost > 0 ? (((totalRevenue - totalOpCost) / totalOpCost) * 100).toFixed(1) : 0;
+        const utilizationRate = vehicles.length > 0
+            ? ((vehicles.filter(v => v.status === 'On Trip').length / vehicles.length) * 100).toFixed(1)
+            : 0;
+
+        // 5. Top 5 Costliest Vehicles (by total operational cost)
+        const costliestVehicles = vehicles.map(v => {
+            const vLogs = logs.filter(l => l.vehicle.toString() === v._id.toString());
+            return { name: v.name, totalCost: vLogs.reduce((acc, l) => acc + l.amount, 0) };
+        }).sort((a, b) => b.totalCost - a.totalCost).slice(0, 5);
+
+        // 6. Monthly Financial Summary
+        const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthlyFinancialMap = {};
+        trips.forEach(trip => {
+            if (trip.completionDate) {
+                const month = trip.completionDate.toLocaleString('default', { month: 'short' });
+                if (!monthlyFinancialMap[month]) monthlyFinancialMap[month] = { revenue: 0, fuelCost: 0, maintenance: 0 };
+                monthlyFinancialMap[month].revenue += trip.revenue || 0;
+                monthlyFinancialMap[month].fuelCost += trip.fuelCost || 0;
+            }
+        });
+        logs.filter(l => l.type === 'Maintenance').forEach(log => {
+            const month = log.date.toLocaleString('default', { month: 'short' });
+            if (!monthlyFinancialMap[month]) monthlyFinancialMap[month] = { revenue: 0, fuelCost: 0, maintenance: 0 };
+            monthlyFinancialMap[month].maintenance += log.amount;
+        });
+        const monthlyFinancials = monthOrder
+            .filter(m => monthlyFinancialMap[m])
+            .map(m => ({
+                month: m,
+                revenue: monthlyFinancialMap[m].revenue,
+                fuelCost: monthlyFinancialMap[m].fuelCost,
+                maintenance: monthlyFinancialMap[m].maintenance,
+                netProfit: monthlyFinancialMap[m].revenue - monthlyFinancialMap[m].fuelCost - monthlyFinancialMap[m].maintenance
+            }));
+
         res.json({
             utilization,
             fuelTrend: { labels, data: fuelTrend },
-            roiReport
+            roiReport,
+            kpis: { totalFuelCost, totalRevenue, totalMaintenance, overallROI, utilizationRate },
+            costliestVehicles,
+            monthlyFinancials
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
