@@ -9,6 +9,7 @@ const driverSchema = new mongoose.Schema({
     tripCompletionRate: { type: Number, default: 100 },
     complaints: { type: Number, default: 0 },
     status: { type: String, enum: ['Available', 'On Duty', 'Off Duty', 'Suspended', 'On Trip', 'Taking a Break'], default: 'Off Duty' },
+    profilePhoto: { type: String, default: '' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Driver', driverSchema);

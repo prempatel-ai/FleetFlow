@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, FormEvent, useMemo } from 'react';
-import { Plus, Search, Filter, ArrowUpDown, ChevronDown, Shield, AlertTriangle, Moon, X, Activity, Briefcase, User } from 'lucide-react';
+import { Plus, Search, Filter, ArrowUpDown, ChevronDown, Shield, AlertTriangle, Moon, X, Activity, Briefcase, User, Camera } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../utils/api';
 import StatusPill from '../../components/StatusPill';
@@ -13,6 +13,8 @@ const Drivers: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     // Search & Filter State
     const [searchQuery, setSearchQuery] = useState('');
@@ -28,7 +30,8 @@ const Drivers: React.FC = () => {
         licenseNumber: '',
         licenseExpiry: '',
         vehicleCategory: [] as string[],
-        complaints: 0
+        complaints: 0,
+        profilePhoto: ''
     });
 
     useEffect(() => {
@@ -45,6 +48,18 @@ const Drivers: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64 = reader.result as string;
+            setPhotoPreview(base64);
+            setNewDriver(prev => ({ ...prev, profilePhoto: base64 }));
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleAddDriver = async (e: FormEvent) => {
@@ -64,12 +79,15 @@ const Drivers: React.FC = () => {
 
     const openEditModal = (driver: Driver) => {
         setEditingDriver(driver);
+        const existingPhoto = (driver as any).profilePhoto || null;
+        setPhotoPreview(existingPhoto);
         setNewDriver({
             name: driver.name,
             licenseNumber: driver.licenseNumber,
             licenseExpiry: driver.licenseExpiry?.split('T')[0] || '',
             vehicleCategory: driver.vehicleCategory || [],
-            complaints: driver.complaints || 0
+            complaints: driver.complaints || 0,
+            profilePhoto: existingPhoto || ''
         });
         setShowModal(true);
     };
@@ -77,7 +95,8 @@ const Drivers: React.FC = () => {
     const closeModal = () => {
         setShowModal(false);
         setEditingDriver(null);
-        setNewDriver({ name: '', licenseNumber: '', licenseExpiry: '', vehicleCategory: [], complaints: 0 });
+        setPhotoPreview(null);
+        setNewDriver({ name: '', licenseNumber: '', licenseExpiry: '', vehicleCategory: [], complaints: 0, profilePhoto: '' });
     };
 
     const handleUpdateStatus = async (id: string, status: string) => {
@@ -306,10 +325,17 @@ const Drivers: React.FC = () => {
                                                 >
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${expired ? 'bg-danger/20 text-danger' : 'bg-primary/10 text-primary'
-                                                                }`}>
-                                                                {driver.name[0]}
-                                                            </div>
+                                                            {(driver as any).profilePhoto ? (
+                                                                <img
+                                                                    src={(driver as any).profilePhoto}
+                                                                    alt={driver.name}
+                                                                    className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-100 flex-shrink-0"
+                                                                />
+                                                            ) : (
+                                                                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${expired ? 'bg-danger/20 text-danger' : 'bg-primary/10 text-primary'}`}>
+                                                                    {driver.name[0]}
+                                                                </div>
+                                                            )}
                                                             <span className="font-bold text-slate-800">{driver.name}</span>
                                                         </div>
                                                     </td>
@@ -406,6 +432,43 @@ const Drivers: React.FC = () => {
                             </div>
 
                             <form onSubmit={handleAddDriver} className="space-y-5">
+                                {/* Photo Upload */}
+                                <div className="flex justify-center mb-2">
+                                    <div className="relative group">
+                                        <div
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="w-24 h-24 rounded-full border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center cursor-pointer overflow-hidden hover:border-primary/50 hover:bg-primary/5 transition-all"
+                                        >
+                                            {photoPreview ? (
+                                                <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="flex flex-col items-center gap-1 text-slate-300">
+                                                    <Camera size={28} />
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest">Photo</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {photoPreview && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); setPhotoPreview(null); setNewDriver(p => ({ ...p, profilePhoto: '' })); }}
+                                                className="absolute -top-1 -right-1 w-6 h-6 bg-danger text-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        )}
+                                        <div className="absolute bottom-0 right-0 w-7 h-7 bg-primary rounded-full flex items-center justify-center shadow-md pointer-events-none">
+                                            <Camera size={13} className="text-white" />
+                                        </div>
+                                    </div>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handlePhotoChange}
+                                    />
+                                </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="col-span-1">
                                         <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Full Name</label>
