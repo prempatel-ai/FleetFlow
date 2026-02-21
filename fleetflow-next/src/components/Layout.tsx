@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, User, ChevronDown } from 'lucide-react';
+import ProfileModal from './ProfileModal';
 
 interface LayoutProps {
     children: ReactNode;
@@ -15,6 +16,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const { user, loading, logout } = useAuth();
     const router = useRouter();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
     useEffect(() => {
         if (!loading && !user) {
@@ -58,8 +60,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                                 className="flex items-center gap-3 p-1.5 pr-4 glass hover:bg-white/50 rounded-2xl transition-all duration-300 group border border-white/40 shadow-sm hover:shadow-md"
                             >
-                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner border border-primary/5">
-                                    {user?.name?.[0] || 'U'}
+                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner border border-primary/5 overflow-hidden">
+                                    {user?.profilePhoto ? (
+                                        <img src={user.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+                                    ) : (
+                                        user?.name?.[0] || 'U'
+                                    )}
                                 </div>
                                 <div className="text-left hidden sm:block">
                                     <p className="text-xs font-bold text-slate-800 leading-tight">{user?.name}</p>
@@ -95,7 +101,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                             </div>
 
                                             <div className="space-y-1">
-                                                <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-primary hover:bg-primary/5 rounded-xl transition-all duration-200 group">
+                                                <button
+                                                    onClick={() => {
+                                                        setIsProfileModalOpen(true);
+                                                        setIsProfileOpen(false);
+                                                    }}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-primary hover:bg-primary/5 rounded-xl transition-all duration-200 group"
+                                                >
                                                     <div className="p-1.5 rounded-lg bg-slate-50 group-hover:bg-primary/10 transition-colors">
                                                         <User size={16} />
                                                     </div>
@@ -130,6 +142,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </div>
                 </main>
             </div>
+
+            {/* Profile Modal */}
+            <ProfileModal
+                isOpen={isProfileModalOpen}
+                onClose={() => setIsProfileModalOpen(false)}
+            />
         </div>
     );
 };
