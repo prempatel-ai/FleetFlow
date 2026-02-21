@@ -43,7 +43,7 @@ const Analytics: React.FC = () => {
     const selectedRangeLabel = RANGE_OPTIONS.find(o => o.value === range)?.label || 'Last 30 Days';
 
     const handleExport = () => {
-        if (!data?.monthlyFinancials?.length) return;
+        if (!data) return;
         setExporting(true);
         try {
             const rows = [
@@ -180,7 +180,7 @@ const Analytics: React.FC = () => {
                         {/* Export Button */}
                         <button
                             onClick={handleExport}
-                            disabled={exporting || !data?.monthlyFinancials?.length}
+                            disabled={exporting || !data}
                             className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary/90 transition-all shadow-lg shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Download size={18} className={exporting ? 'animate-bounce' : ''} />
