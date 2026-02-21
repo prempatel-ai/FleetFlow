@@ -38,7 +38,7 @@ const Sidebar: React.FC = () => {
     ];
 
     return (
-        <div className="w-72 bg-white/80 backdrop-blur-xl border-r border-slate-200/50 h-screen sticky top-0 flex flex-col z-50 transition-all duration-300">
+        <div className="w-72 bg-white/80 backdrop-blur-xl border-r border-slate-200/50 h-screen fixed left-0 top-0 flex flex-col z-50 transition-all duration-300">
             {/* Logo Section */}
             <div className="p-8 mb-4">
                 <div className="flex items-center gap-3 group cursor-pointer">

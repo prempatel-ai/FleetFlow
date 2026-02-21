@@ -40,9 +40,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
 
     return (
-        <div className="flex bg-background min-h-screen relative overflow-hidden font-outfit selection:bg-primary/20">
-            {/* Mesh Background Effects - Optimized for Lightness */}
-            <div className="fixed inset-0 pointer-events-none opacity-20">
+        <div className="flex bg-background min-h-screen font-outfit selection:bg-primary/20">
+            {/* Mesh Background Effects */}
+            <div className="fixed inset-0 pointer-events-none opacity-20 z-0">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[80px]" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-success/15 rounded-full blur-[60px]" />
                 <div className="absolute top-[20%] right-[10%] w-[25%] h-[25%] bg-accent/15 rounded-full blur-[50px]" />
@@ -50,7 +50,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             <Sidebar />
 
-            <div className="flex-1 flex flex-col min-h-screen relative z-10 w-full">
+            {/* Main content — offset by sidebar width */}
+            <div className="flex-1 flex flex-col min-h-screen relative z-10 ml-72">
                 {/* Modern Top Header with Profile Dropdown */}
                 <header className="h-20 flex items-center justify-end px-8 md:px-12 relative z-[200]">
                     <div className="flex items-center gap-6">
