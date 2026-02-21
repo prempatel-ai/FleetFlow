@@ -40,13 +40,15 @@ const Sidebar: React.FC = () => {
     return (
         <div className="w-72 bg-white/80 backdrop-blur-xl border-r border-slate-200/50 h-screen fixed left-0 top-0 flex flex-col z-50 transition-all duration-300">
             {/* Logo Section */}
-            <div className="p-8 mb-4">
+            <div className="px-6 pt-7 pb-5 mb-2">
                 <div className="flex items-center gap-3 group cursor-pointer">
-                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/25 rotate-3 group-hover:rotate-0 transition-transform">
-                        <div className="w-4 h-4 border-2 border-white rounded rotate-45" />
-                    </div>
+                    <img
+                        src="/logo.svg"
+                        alt="FleetFlow Logo"
+                        className="w-11 h-11 drop-shadow-md group-hover:scale-105 transition-transform duration-300"
+                    />
                     <div>
-                        <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-none mb-1">FleetFlow</h1>
+                        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-none mb-0.5">FleetFlow</h1>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Global Logistics</p>
                     </div>
                 </div>
