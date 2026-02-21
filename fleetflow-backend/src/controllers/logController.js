@@ -5,7 +5,7 @@ const Trip = require('../models/Trip');
 // @desc    Add Log (Fuel or Maintenance)
 // @route   POST /api/logs
 const addLog = async (req, res) => {
-    const { vehicleId, type, amount, liters, description } = req.body;
+    const { vehicleId, type, amount, liters, description, date } = req.body;
 
     try {
         const vehicle = await Vehicle.findById(vehicleId);
@@ -16,7 +16,8 @@ const addLog = async (req, res) => {
             type,
             amount,
             liters,
-            description
+            description,
+            date: date || undefined
         });
 
         // Rule: If Maintenance log added, set vehicle to "In Shop"

@@ -14,9 +14,9 @@ const getVehicles = async (req, res) => {
 // @desc    Add new vehicle
 // @route   POST /api/vehicles
 const addVehicle = async (req, res) => {
-    const { name, model, licensePlate, type, maxCapacity, acquisitionCost } = req.body;
+    const { name, model, licensePlate, type, maxCapacity, acquisitionCost, odometer } = req.body;
     try {
-        const vehicle = await Vehicle.create({ name, model, licensePlate, type, maxCapacity, acquisitionCost });
+        const vehicle = await Vehicle.create({ name, model, licensePlate, type, maxCapacity, acquisitionCost, odometer });
         res.status(201).json(vehicle);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -40,4 +40,17 @@ const updateVehicleStatus = async (req, res) => {
     }
 };
 
-module.exports = { getVehicles, addVehicle, updateVehicleStatus };
+const deleteVehicle = async (req, res) => {
+    try {
+        const vehicle = await Vehicle.findByIdAndDelete(req.params.id);
+        if (vehicle) {
+            res.json({ message: 'Vehicle deleted successfully' });
+        } else {
+            res.status(404).json({ message: 'Vehicle not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { getVehicles, addVehicle, updateVehicleStatus, deleteVehicle };
